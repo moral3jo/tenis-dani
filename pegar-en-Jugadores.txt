@@ -1,0 +1,10 @@
+Nombre	Categoría
+Juan G.	Benjamín
+Pedro L.	Benjamín
+Marco T.	Benjamín
+Hugo R.	Benjamín
+Iván S.	Benjamín
+Ana R.	Alevín
+Lucía M.	Alevín
+Sara P.	Alevín
+Marta V.	Alevín

@@ -17,7 +17,7 @@ const CONFIG = {
      Está en la dirección de la hoja, entre /d/ y /edit:
      docs.google.com/spreadsheets/d/AQUI_VA_EL_ID/edit
      Pega ese código entre las comillas:                    */
-  SHEET_ID: "PEGA_AQUI_EL_ID_DE_TU_HOJA",
+  SHEET_ID: "1-TwlCeVNmyuTF3g47zL-RAM68Hp0fhAzLHmRWHLZN_Q",
 
   /* ── Nombres EXACTOS de las dos pestañas de la hoja ── */
   PESTANA_JUGADORES: "Jugadores",

@@ -1,0 +1,11 @@
+Categoría	Jugador1	Jugador2	Juegos1	Juegos2
+Benjamín	Juan G.	Pedro L.	6	3
+Benjamín	Juan G.	Marco T.	6	4
+Benjamín	Pedro L.	Hugo R.	2	6
+Benjamín	Marco T.	Iván S.	6	1
+Benjamín	Hugo R.	Iván S.	6	4
+Benjamín	Juan G.	Hugo R.	7	5
+Alevín	Ana R.	Lucía M.	6	2
+Alevín	Sara P.	Marta V.	4	6
+Alevín	Ana R.	Sara P.	6	3
+Alevín	Lucía M.	Marta V.	NP	6
