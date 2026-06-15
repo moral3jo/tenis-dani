@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campeonato de Tenis</title>
+  <meta name="description" content="Clasificación y resultados en directo del campeonato de tenis." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23d8e635'/><path d='M14 22 Q50 50 14 78 M86 22 Q50 50 86 78' stroke='%231c3a2e' stroke-width='5' fill='none'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <header class="nav" id="top">
+    <a href="#top" class="nav__brand"><span class="nav__ball" aria-hidden="true"></span> Tenis <em>Live</em></a>
+    <nav class="nav__links" aria-label="Principal">
+      <a href="#clasificacion-sec">Clasificación</a>
+      <a href="#cruces-sec">Cruces</a>
+    </nav>
+    <button class="nav__toggle" aria-label="Abrir menú" aria-expanded="false"><span></span><span></span><span></span></button>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__court" aria-hidden="true">
+      <div class="hero__line hero__line--out"></div>
+      <div class="hero__line hero__line--in"></div>
+      <div class="hero__net"></div>
+    </div>
+    <div class="hero__inner">
+      <div class="live" id="live"><span class="live__dot"></span> En directo</div>
+      <h1 class="hero__title" id="titulo">Campeonato de Tenis</h1>
+      <p class="hero__sub" id="subtitulo">Liga todos contra todos</p>
+      <div class="hero__bar">
+        <span class="actualizado" id="actualizado">Cargando…</span>
+        <button class="btn-refrescar" id="btn-refrescar">↻ Actualizar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- AVISO (config / error) -->
+  <div class="aviso" id="aviso" hidden></div>
+
+  <!-- PESTAÑAS DE CATEGORÍA -->
+  <div class="cat-tabs" id="cat-tabs"></div>
+
+  <!-- CLASIFICACIÓN -->
+  <section class="section" id="clasificacion-sec">
+    <div class="section__head">
+      <span class="section__kicker">Tabla</span>
+      <h2 class="section__title">Clasificación</h2>
+    </div>
+    <div id="clasificacion"></div>
+  </section>
+
+  <!-- CRUCES -->
+  <section class="section section--alt" id="cruces-sec">
+    <div class="section__head">
+      <span class="section__kicker">Todos contra todos</span>
+      <h2 class="section__title">Cruces</h2>
+    </div>
+    <div class="cruces" id="cruces"></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__brand">Tenis <em>Live</em></div>
+    <p>Clasificación y resultados en directo · datos desde Google Sheets</p>
+    <a href="#top" class="footer__top">Volver arriba ↑</a>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
