@@ -26,11 +26,19 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero__court" aria-hidden="true">
-      <div class="hero__line hero__line--out"></div>
-      <div class="hero__line hero__line--in"></div>
-      <div class="hero__net"></div>
-    </div>
+    <svg class="hero__court" viewBox="0 0 360 180" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <g class="court-line">
+        <rect x="20" y="24" width="320" height="132" rx="2" />
+        <line x1="20" y1="44" x2="340" y2="44" />
+        <line x1="20" y1="136" x2="340" y2="136" />
+        <line x1="86" y1="44" x2="86" y2="136" />
+        <line x1="274" y1="44" x2="274" y2="136" />
+        <line x1="86" y1="90" x2="274" y2="90" />
+        <line x1="20" y1="90" x2="29" y2="90" />
+        <line x1="331" y1="90" x2="340" y2="90" />
+      </g>
+      <line class="court-net" x1="180" y1="18" x2="180" y2="162" />
+    </svg>
     <div class="hero__inner">
       <div class="live" id="live"><span class="live__dot"></span> En directo</div>
       <h1 class="hero__title" id="titulo">Campeonato de Tenis</h1>
