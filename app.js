@@ -186,30 +186,38 @@ function el(tag, opts = {}, ...hijos) {
 
 function pintar(datos) {
   const cats = [...datos.categorias.entries()];
-  if (!cats.length) { mensaje("La hoja no tiene jugadores todavía. Añade filas en la pestaña «" + CONFIG.PESTANA_JUGADORES + "»."); return; }
-
+  const secCru = $("#cruces-sec"), secCla = $("#clasificacion-sec");
+  if (!cats.length) {
+    mensaje("La hoja no tiene jugadores todavía. Añade filas en la pestaña «" + CONFIG.PESTANA_JUGADORES + "».");
+    $("#cat-tabs").replaceChildren();
+    secCru.hidden = true; secCla.hidden = true;
+    return;
+  }
   if (!CATEGORIA_ACTIVA || !datos.categorias.has(CATEGORIA_ACTIVA)) CATEGORIA_ACTIVA = cats[0][0];
 
-  // pestañas de categoría
+  // pestañas de categoría (siempre visibles en la cabecera)
   const tabs = $("#cat-tabs");
   tabs.replaceChildren();
-  if (cats.length > 1) {
-    cats.forEach(([ck, c]) => {
-      const b = el("button", { class: "tab" + (ck === CATEGORIA_ACTIVA ? " tab--on" : ""), text: c.nombre });
-      b.addEventListener("click", () => { CATEGORIA_ACTIVA = ck; pintar(datos); });
-      tabs.append(b);
-    });
-  }
+  cats.forEach(([ck, c]) => {
+    const b = el("button", { class: "tab" + (ck === CATEGORIA_ACTIVA ? " tab--on" : ""), text: c.nombre });
+    b.addEventListener("click", () => { CATEGORIA_ACTIVA = ck; pintar(datos); });
+    tabs.append(b);
+  });
 
   const cat = datos.categorias.get(CATEGORIA_ACTIVA);
   pintarClasificacion(datos, CATEGORIA_ACTIVA, cat);
   pintarCruces(datos, CATEGORIA_ACTIVA, cat);
+  secCru.hidden = false;
 }
 
 function pintarClasificacion(datos, ck, cat) {
   const lista = clasificacion(datos, ck, cat.jugadores);
   const cont = $("#clasificacion");
+  const sec = $("#clasificacion-sec");
   cont.replaceChildren();
+  // La clasificación solo se muestra si ya hay algún resultado en la categoría
+  if (!lista.some(p => p.pj > 0)) { sec.hidden = true; return; }
+  sec.hidden = false;
 
   const wrap = el("div", { class: "tabla-wrap" });
   const tabla = el("table", { class: "tabla" });
@@ -287,7 +295,7 @@ function ocultarAviso() { $("#aviso").hidden = true; }
 
 function setReloj() {
   const d = new Date();
-  $("#actualizado").textContent = "Actualizado a las " +
+  $("#actualizado").textContent = "Última actualización · " +
     d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
@@ -300,7 +308,6 @@ async function cargar() {
     return;
   }
   cargando = true;
-  $("#live").classList.add("live--loading");
   try {
     const [jug, resu] = await Promise.all([
       leerPestana(CONFIG.PESTANA_JUGADORES),
@@ -313,7 +320,6 @@ async function cargar() {
     mensaje("No se pudo leer la hoja. Revisa que el ID sea correcto y que esté compartida como «Cualquiera con el enlace: Lector». (" + e.message + ")", "error");
   } finally {
     cargando = false;
-    $("#live").classList.remove("live--loading");
   }
 }
 
@@ -321,20 +327,6 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#titulo").textContent = CONFIG.TITULO;
   $("#subtitulo").textContent = CONFIG.SUBTITULO;
   document.title = CONFIG.TITULO;
-  $("#btn-refrescar").addEventListener("click", cargar);
-
-  // menú móvil
-  const btn = $(".nav__toggle"), links = $(".nav__links");
-  if (btn) {
-    btn.addEventListener("click", () => {
-      const abierto = links.classList.toggle("is-open");
-      btn.setAttribute("aria-expanded", abierto);
-    });
-    links.querySelectorAll("a").forEach(a => a.addEventListener("click", () => {
-      links.classList.remove("is-open"); btn.setAttribute("aria-expanded", "false");
-    }));
-  }
-
   cargar();
   setInterval(cargar, Math.max(10, CONFIG.REFRESCO_SEGUNDOS) * 1000);
 });

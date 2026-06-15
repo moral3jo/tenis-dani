@@ -14,14 +14,10 @@
 <body>
   <div class="grain" aria-hidden="true"></div>
 
-  <!-- NAV -->
-  <header class="nav" id="top">
-    <a href="#top" class="nav__brand"><span class="nav__ball" aria-hidden="true"></span> Tenis <em>Live</em></a>
-    <nav class="nav__links" aria-label="Principal">
-      <a href="#clasificacion-sec">Clasificación</a>
-      <a href="#cruces-sec">Cruces</a>
-    </nav>
-    <button class="nav__toggle" aria-label="Abrir menú" aria-expanded="false"><span></span><span></span><span></span></button>
+  <!-- Cabecera fija: categorías siempre visibles -->
+  <header class="topbar" id="top">
+    <a href="#top" class="topbar__brand"><span class="nav__ball" aria-hidden="true"></span> Tenis</a>
+    <nav class="cat-tabs" id="cat-tabs" aria-label="Categorías"></nav>
   </header>
 
   <!-- HERO -->
@@ -40,21 +36,14 @@
       <line class="court-net" x1="180" y1="18" x2="180" y2="162" />
     </svg>
     <div class="hero__inner">
-      <div class="live" id="live"><span class="live__dot"></span> En directo</div>
       <h1 class="hero__title" id="titulo">Campeonato de Tenis</h1>
       <p class="hero__sub" id="subtitulo">Liga todos contra todos</p>
-      <div class="hero__bar">
-        <span class="actualizado" id="actualizado">Cargando…</span>
-        <button class="btn-refrescar" id="btn-refrescar">↻ Actualizar</button>
-      </div>
+      <span class="actualizado" id="actualizado">Cargando…</span>
     </div>
   </section>
 
   <!-- AVISO (config / error) -->
   <div class="aviso" id="aviso" hidden></div>
-
-  <!-- PESTAÑAS DE CATEGORÍA -->
-  <div class="cat-tabs" id="cat-tabs"></div>
 
   <!-- CLASIFICACIÓN -->
   <section class="section" id="clasificacion-sec">
