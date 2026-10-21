@@ -11,7 +11,6 @@ const CONFIG = {
 
   /* ── Nombre del torneo (sale en la cabecera) ── */
   TITULO: "Torneo de Octubre · Tenis La Fontana",
-  SUBTITULO: "Grupos a 7 puntos · eliminatorias a 10",
 
   /* ── ID de tu Google Sheet ──
      Está en la dirección de la hoja, entre /d/ y /edit:
@@ -28,8 +27,6 @@ const CONFIG = {
 
   /* ── Formato del torneo ── */
   PARTIDOS_PROTEGIDOS: 6,    // los primeros partidos de la cola nunca se mueven al apuntar a alguien tarde
-  PUNTOS_FASE1: 7,           // puntos por partido en los grupos
-  PUNTOS_FASE2: 10,          // puntos por partido en las eliminatorias
   CLASIFICAN: 4,             // cuántos de cada grupo pasan a eliminatorias
   CAT_ELIM: "Eliminatoria",  // «Categoría» a usar en Resultados para esos partidos
   CAT_CONSOL: "Consolación", // ídem para el resto de cada grupo

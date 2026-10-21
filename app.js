@@ -216,7 +216,7 @@ function pintar(datos) {
     $("#cat-tabs").replaceChildren();
     return;
   }
-  const vistas = [[VISTA_LISTAS, "Listas"], [VISTA_ORDEN, "Partidos"], ...cats.map(([ck, c]) => [ck, c.nombre]), [VISTA_ELIM, "Eliminatorias"]];
+  const vistas = [[VISTA_LISTAS, "Listas"], [VISTA_ORDEN, "Partidos"], ...cats.map(([ck, c]) => [ck, c.nombre]), [VISTA_ELIM, "Final"]];
   if (!VISTA_ACTIVA || !vistas.some(v => v[0] === VISTA_ACTIVA)) VISTA_ACTIVA = VISTA_ORDEN;
 
   const tabs = $("#cat-tabs");
@@ -293,7 +293,7 @@ function pintarOrden(datos) {
   const total = cats.reduce((s, [, c]) => s + c.partidos.length, 0);
   if (!total) { cont.append(el("p", { class: "vacio", text: "Aún no hay suficientes jugadores." })); return; }
   const hechosN = cats.reduce((s, [ck, c]) => s + c.partidos.filter(([a, b]) => resultadoDe(datos, ck, a, b)).length, 0);
-  $("#orden-resumen").textContent = `${hechosN} de ${total} partidos jugados · a ${CONFIG.PUNTOS_FASE1} puntos`;
+  $("#orden-resumen").textContent = `${hechosN} de ${total} partidos jugados`;
 
   const cols = el("div", { class: "cols" });
   const hechos = [];
@@ -330,7 +330,7 @@ function estadoGrupo(datos, ck, c) {
   return { lista, terminado };
 }
 
-/* Eliminatorias a 10 puntos entre los mejores de A y B + consolación */
+/* Eliminatorias entre los mejores de A y B + consolación */
 function pintarElim(datos) {
   const cont = $("#elim");
   cont.replaceChildren();
@@ -343,7 +343,7 @@ function pintarElim(datos) {
   const a = i => A.lista[i], b = i => B.lista[i];
 
   $("#elim-resumen").textContent = (prov ? "Cruces provisionales: cambian según la clasificación de los grupos. " : "Cruces definitivos. ")
-    + `Primeros ${N} de cada grupo, a ${CONFIG.PUNTOS_FASE2} puntos.`;
+    + `Primeros ${N} de cada grupo.`;
 
   const ganador = (p) => {
     if (!p.a || !p.b) return null;
@@ -479,12 +479,6 @@ function mensaje(txt, tipo = "info") {
 }
 function ocultarAviso() { $("#aviso").hidden = true; }
 
-function setReloj() {
-  const d = new Date();
-  $("#actualizado").textContent = "Última actualización · " +
-    d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-}
-
 /* ---------- Carga + auto-refresco ---------- */
 let cargando = false;
 async function cargar() {
@@ -501,7 +495,6 @@ async function cargar() {
     ]);
     ocultarAviso();
     pintar(construir(jug, resu));
-    setReloj();
   } catch (e) {
     mensaje("No se pudo leer la hoja. Revisa que el ID sea correcto y que esté compartida como «Cualquiera con el enlace: Lector». (" + e.message + ")", "error");
   } finally {
@@ -510,8 +503,6 @@ async function cargar() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  $("#titulo").textContent = CONFIG.TITULO;
-  $("#subtitulo").textContent = CONFIG.SUBTITULO;
   document.title = CONFIG.TITULO;
   cargar();
   setInterval(cargar, Math.max(10, CONFIG.REFRESCO_SEGUNDOS) * 1000);
