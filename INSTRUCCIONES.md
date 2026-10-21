@@ -29,13 +29,16 @@ cada 30 segundos.
 
 ### Paso 1.2 — Pestaña «Jugadores»
 Abajo a la izquierda verás una pestaña («Hoja 1»). Haz doble clic y renómbrala a **`Jugadores`**.
-En la **primera fila** escribe estas dos cabeceras (una por columna):
+En la **primera fila** escribe estas cuatro cabeceras (una por columna):
 
-| Nombre   | Categoría |
-|----------|-----------|
-| Juan G.  | Benjamín  |
-| Pedro L. | Benjamín  |
-| Ana R.   | Alevín    |
+| Nombre         | Año  | Grupo | Tarde |
+|----------------|------|-------|-------|
+| Íñigo R.       | 2016 | A     |       |
+| Javier P.      | 2018 | B     |       |
+| Niño que llega | 2017 | A     | x     |
+
+- Se apunta **en cualquier orden**; la web separa los grupos y lo deja limpio. En `Grupo` basta `A` o `B`.
+- **`Tarde`**: si llega cuando ya se han enseñado los cruces, ponle una `x`. Así no se mueven los partidos ya anunciados.
 
 > 🔒 Por ser menores: usa **nombre + inicial**, nunca apellidos completos (la web es pública).
 
@@ -45,7 +48,9 @@ Cabeceras en la primera fila (5 columnas):
 
 | Categoría | Jugador1 | Jugador2 | Juegos1 | Juegos2 |
 |-----------|----------|----------|---------|---------|
-| Benjamín  | Juan G.  | Pedro L. | 6       | 3       |
+| A         | Íñigo R. | Álvaro P.| 7       | 4       |
+
+En `Categoría` pon `A` o `B` (o `Eliminatoria` / `Consolación` para la fase final).
 
 - Pones **una fila por partido jugado**. No hace falta rellenar los que faltan.
 - `Juegos1` y `Juegos2` son los juegos que hizo cada uno.

@@ -216,13 +216,13 @@ function pintar(datos) {
     $("#cat-tabs").replaceChildren();
     return;
   }
-  const vistas = [[VISTA_LISTAS, "Listas"], [VISTA_ORDEN, "Partidos"], ...cats.map(([ck, c]) => [ck, c.nombre]), [VISTA_ELIM, "Final"]];
+  const vistas = [[VISTA_LISTAS, "Listas"], [VISTA_ORDEN, "Partidos"], ...cats.map(([ck, c]) => [ck, ck.toUpperCase()]), [VISTA_ELIM, "Final"]];
   if (!VISTA_ACTIVA || !vistas.some(v => v[0] === VISTA_ACTIVA)) VISTA_ACTIVA = VISTA_ORDEN;
 
   const tabs = $("#cat-tabs");
   tabs.replaceChildren();
   vistas.forEach(([k, nombre]) => {
-    const b = el("button", { class: "tab" + (k === VISTA_ACTIVA ? " tab--on" : ""), text: nombre });
+    const b = el("button", { class: "tab" + (nombre.length <= 2 ? " tab--mini" : "") + (k === VISTA_ACTIVA ? " tab--on" : ""), text: nombre });
     b.addEventListener("click", () => { VISTA_ACTIVA = k; pintar(datos); window.scrollTo({ top: 0 }); });
     tabs.append(b);
   });
