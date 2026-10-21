@@ -426,8 +426,6 @@ function pintarClasificacion(datos, ck, cat) {
   cont.append(wrap);
 }
 
-const edadDe = (cat, n) => cat.edad.get(n) ? " (" + cat.edad.get(n) + ")" : "";
-
 function pintarCruces(datos, ck, cat) {
   const cont = $("#cruces");
   cont.replaceChildren();
@@ -441,8 +439,8 @@ function pintarCruces(datos, ck, cat) {
 
     const linA = el("div", { class: "cruce__lado" });
     const linB = el("div", { class: "cruce__lado" });
-    linA.append(el("span", { class: "cruce__nombre", text: a + edadDe(cat, a) }));
-    linB.append(el("span", { class: "cruce__nombre", text: b + edadDe(cat, b) }));
+    linA.append(el("span", { class: "cruce__nombre", text: a }));
+    linB.append(el("span", { class: "cruce__nombre", text: b }));
 
     if (r) {
       const ga = r.np1 ? "NP" : (r.n1 ? r.g1 : "–");

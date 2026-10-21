@@ -8,20 +8,27 @@
    ========================================================= */
 
 /* Todos contra todos por rondas (método del círculo) con huecos fijos.
-   Cada jugador ocupa el hueco que le toca por su fila en la hoja; los huecos
-   vacíos son «descansos» que desaparecen del calendario. Al apuntar a alguien
-   nuevo solo se rellena un hueco: sus partidos entran al FINAL de cada ronda y
-   ningún partido existente cambia de orden.
+   Cada jugador ocupa un hueco del cuadro según su fila en la hoja (repartidos
+   con un salto para que, aun con pocos jugadores, nadie juegue seguido). Los
+   huecos vacíos son «descansos» que desaparecen del calendario. Al apuntar a
+   alguien nuevo solo se rellena un hueco: sus partidos entran al FINAL de cada
+   ronda y ningún partido existente cambia de orden.
    Si hay más jugadores que huecos, el cuadro crece al siguiente número par. */
-function ordenGrupo(jugadores, huecos = 8) {
+const mcd = (a, b) => (b ? mcd(b, a % b) : a);
+
+function ordenGrupo(jugadores, huecos = 14) {
   const n = Math.max(huecos, jugadores.length + (jugadores.length % 2));
+  let paso = Math.round(n * 0.64);
+  while (mcd(paso, n) !== 1) paso++;
+  const hueco = new Array(n).fill(-1);                  // hueco -> índice de jugador
+  jugadores.forEach((_, i) => { hueco[(i * paso) % n] = i; });
   const rueda = Array.from({ length: n }, (_, i) => i);
   const out = [];
   for (let r = 0; r < n - 1; r++) {
     const ronda = [];
     for (let i = 0; i < n / 2; i++) {
-      const x = rueda[i], y = rueda[n - 1 - i];
-      if (x < jugadores.length && y < jugadores.length) ronda.push([Math.min(x, y), Math.max(x, y)]);
+      const x = hueco[rueda[i]], y = hueco[rueda[n - 1 - i]];
+      if (x >= 0 && y >= 0) ronda.push([Math.min(x, y), Math.max(x, y)]);
     }
     ronda.sort((p, q) => p[1] - q[1]);          // el más reciente, el último de la ronda
     ronda.forEach(([x, y]) => out.push([jugadores[x], jugadores[y]]));
