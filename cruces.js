@@ -9,6 +9,7 @@
      2. Cada jugador «Tarde» se va insertando, en orden de fila,
         repartiendo sus partidos por la cola SIN tocar los
         primeros partidos (los que ya se han anunciado).
+   El orden no depende del número de pistas: es una cola única.
    ========================================================= */
 
 /* Todos contra todos por rondas (método del círculo) */
@@ -82,7 +83,9 @@ function ordenGrupo(base, tarde, protegidos) {
   return lista;
 }
 
-/* Mezcla las listas de los grupos (A1,B1,A2,B2…) en una sola cola */
+/* Mezcla las listas de los grupos (A1,B1,A2,B2…) en una sola cola.
+   Como cada grupo ya viene ordenado por rondas, los partidos seguidos de
+   la cola nunca repiten jugador: sirve igual con 2, 3 o más pistas. */
 function intercalar(listas) {
   const cola = [];
   const max = Math.max(0, ...listas.map(l => l.partidos.length));
@@ -92,22 +95,4 @@ function intercalar(listas) {
   return cola;
 }
 
-/* Reparte la cola en rondas de `pistas` partidos sin repetir jugador
-   dentro de la ronda (mira como mucho `ventana` partidos por delante). */
-function armarRondas(cola, pistas, ventana = pistas * 3) {
-  const pend = cola.slice(), rondas = [];
-  while (pend.length) {
-    const r = [], usados = new Set();
-    for (let i = 0; i < pend.length && i < ventana && r.length < pistas;) {
-      const p = pend[i];
-      if (!usados.has(p.a) && !usados.has(p.b)) {
-        r.push(p); usados.add(p.a); usados.add(p.b); pend.splice(i, 1);
-      } else i++;
-    }
-    if (!r.length) r.push(pend.shift());
-    rondas.push(r);
-  }
-  return rondas;
-}
-
-if (typeof module !== "undefined") module.exports = { rondasCirculo, insertarJugador, ordenGrupo, intercalar, armarRondas };
+if (typeof module !== "undefined") module.exports = { rondasCirculo, insertarJugador, ordenGrupo, intercalar };

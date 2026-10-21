@@ -14,6 +14,8 @@ const norm = (s) => (s == null ? "" : String(s))
 
 let VISTA_ACTIVA = null;
 
+const ckey = (s) => norm(s).replace(/^grupo /, "");
+
 /* ---------- Lectura de la hoja (endpoint gviz CSV) ---------- */
 function urlHoja(pestana) {
   const id = encodeURIComponent(CONFIG.SHEET_ID);
@@ -77,8 +79,8 @@ function construir(jugadoresRaw, resultadosRaw) {
     const nombre = col(j, "Nombre", "Jugador", "Nombre y apellido");
     const cat = col(j, "Categoría", "Categoria", "Cat", "Grupo") || "General";
     if (!nombre) return;
-    const ck = norm(cat);
-    if (!categorias.has(ck)) categorias.set(ck, { nombre: cat, jugadores: [], base: [], tarde: [], edad: new Map(), set: new Set() });
+    const ck = ckey(cat);
+    if (!categorias.has(ck)) categorias.set(ck, { nombre: /^[a-z]$/i.test(cat.trim()) ? "Grupo " + cat.trim().toUpperCase() : cat, jugadores: [], base: [], tarde: [], edad: new Map(), set: new Set() });
     const c = categorias.get(ck);
     if (c.set.has(norm(nombre))) return;
     c.set.add(norm(nombre));
@@ -88,7 +90,7 @@ function construir(jugadoresRaw, resultadosRaw) {
   });
 
   // Orden de partidos de cada grupo (estable al apuntar gente tarde)
-  const protegidos = Math.ceil(CONFIG.RONDAS_PROTEGIDAS * CONFIG.PISTAS / Math.max(1, categorias.size));
+  const protegidos = Math.ceil(CONFIG.PARTIDOS_PROTEGIDOS / Math.max(1, categorias.size));
   categorias.forEach(c => { c.partidos = ordenGrupo(c.base, c.tarde, protegidos); });
 
   // Índice de resultados por clave: catNorm | nombreA | nombreB (ordenados)
@@ -100,7 +102,7 @@ function construir(jugadoresRaw, resultadosRaw) {
     const g1 = col(r, "Juegos1", "Juegos 1", "Sets1", "Resultado1");
     const g2 = col(r, "Juegos2", "Juegos 2", "Sets2", "Resultado2");
     if (!j1 || !j2) return;
-    const ck = norm(cat);
+    const ck = ckey(cat);
     const clave = [ck, norm(j1), norm(j2)].sort().join("|");
     resultados.set(clave, { cat: ck, j1, j2, g1, g2 });
   });
@@ -228,36 +230,39 @@ function pintar(datos) {
 /* ¿Tiene resultado este partido de la cola? */
 const jugado = (datos, p) => !!resultadoDe(datos, p.cat, p.a, p.b);
 
-/* Vista principal: rondas con sus pistas */
+/* Vista principal: cola única de partidos (se llaman según queden pistas libres) */
+function filaPartido(datos, p, n) {
+  const res = resultadoDe(datos, p.cat, p.a, p.b);
+  const gana = res ? headToHead(datos, p.cat, p.a, p.b) : 0;
+  const fila = el("div", { class: "partido" });
+  fila.append(el("span", { class: "partido__n", text: String(n) }));
+  fila.append(el("span", { class: "partido__jug" + (gana === -1 ? " gana" : ""), text: p.a }));
+  fila.append(el("span", { class: "partido__vs", text: res ? `${res.np1 ? "NP" : res.g1}–${res.np2 ? "NP" : res.g2}` : "vs" }));
+  fila.append(el("span", { class: "partido__jug" + (gana === 1 ? " gana" : ""), text: p.b }));
+  fila.append(el("span", { class: "partido__cat", text: datos.categorias.get(p.cat).nombre.replace(/^Grupo\s*/i, "") }));
+  return fila;
+}
+
 function pintarOrden(datos) {
   const cont = $("#orden");
   cont.replaceChildren();
   const cola = intercalar([...datos.categorias.entries()].map(([ck, c]) => ({ cat: ck, partidos: c.partidos })));
   if (!cola.length) { cont.append(el("p", { class: "vacio", text: "Aún no hay suficientes jugadores." })); return; }
-  const rondas = armarRondas(cola, CONFIG.PISTAS);
-  const nombreCat = (ck) => datos.categorias.get(ck).nombre;
-  const actual = rondas.findIndex(r => r.some(p => !jugado(datos, p)));
-  const hecho = cola.filter(p => jugado(datos, p)).length;
-  $("#orden-resumen").textContent = `${hecho} de ${cola.length} partidos jugados · ${rondas.length} rondas · ${CONFIG.PISTAS} pistas · a ${CONFIG.PUNTOS_FASE1} puntos`;
+  const hechos = [], pend = [];
+  cola.forEach((p, i) => (jugado(datos, p) ? hechos : pend).push([p, i + 1]));
+  $("#orden-resumen").textContent = `${hechos.length} de ${cola.length} partidos jugados · a ${CONFIG.PUNTOS_FASE1} puntos`;
 
-  rondas.forEach((r, i) => {
-    const estado = i === actual ? "ahora" : i === actual + 1 ? "siguiente" : "";
-    const card = el("div", { class: "ronda" + (estado ? " ronda--" + estado : "") + (actual === -1 || i < actual ? " ronda--hecha" : "") });
-    card.append(el("div", { class: "ronda__head" },
-      el("span", { class: "ronda__num", text: "Ronda " + (i + 1) }),
-      estado ? el("span", { class: "ronda__tag", text: estado === "ahora" ? "Primera por jugar" : "Siguiente" }) : null));
-    r.forEach((p, pista) => {
-      const res = resultadoDe(datos, p.cat, p.a, p.b);
-      const fila = el("div", { class: "partido" });
-      const gana = res ? headToHead(datos, p.cat, p.a, p.b) : 0;
-      fila.append(el("span", { class: "partido__pista", text: "P" + (pista + 1) }));
-      fila.append(el("span", { class: "partido__jug" + (gana === -1 ? " gana" : ""), text: p.a }));
-      fila.append(el("span", { class: "partido__vs", text: res ? `${res.np1 ? "NP" : res.g1}–${res.np2 ? "NP" : res.g2}` : "vs" }));
-      fila.append(el("span", { class: "partido__jug" + (gana === 1 ? " gana" : ""), text: p.b }));
-      fila.append(el("span", { class: "partido__cat", text: nombreCat(p.cat).replace(/^Grupo\s*/i, "") }));
-      card.append(fila);
-    });
-    cont.append(card);
+  if (hechos.length) {
+    const d = el("details", { class: "jugados" }, el("summary", { text: `Jugados (${hechos.length})` }));
+    hechos.forEach(([p, n]) => d.append(filaPartido(datos, p, n)));
+    cont.append(d);
+  }
+  if (!pend.length) { cont.append(el("p", { class: "vacio", text: "¡Fase de grupos terminada! Mira las eliminatorias." })); return; }
+  pend.forEach(([p, n], i) => {
+    const fila = filaPartido(datos, p, n);
+    if (i < 3) fila.classList.add("partido--proximo");
+    if (i === 0) fila.classList.add("partido--siguiente");
+    cont.append(fila);
   });
 }
 

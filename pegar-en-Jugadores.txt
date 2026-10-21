@@ -1,16 +1,16 @@
-Nombre	Categoría	Edad	Tarde
-Alexander Hernández	Grupo A	2015	
-Íñigo Rodríguez	Grupo A	2016	
-Gonzalo Hernández	Grupo A	2017	
-Guillermo Santos	Grupo A	2017	
-Diego Oliva	Grupo A	2017	
-Ricardo Alonso	Grupo A	2017	
-Álvaro Paredes	Grupo A	2017	
-Javier Pérez	Grupo B	2018	
-Liam Cruz	Grupo B	2018	
-Daniel Martín	Grupo B	2018	
-Rodrigo Hernández	Grupo B	2018	
-Catalina Rodríguez	Grupo B	2018	
-David Domínguez	Grupo B	2018	
-Ares González	Grupo B	2019	
-Pablo Bejarano	Grupo B	2020	
+Nombre	Año	Grupo	Tarde
+Alexander Hernández	2015	A	
+Íñigo Rodríguez	2016	A	
+Gonzalo Hernández	2017	A	
+Guillermo Santos	2017	A	
+Diego Oliva	2017	A	
+Ricardo Alonso	2017	A	
+Álvaro Paredes	2017	A	
+Javier Pérez	2018	B	
+Liam Cruz	2018	B	
+Daniel Martín	2018	B	
+Rodrigo Hernández	2018	B	
+Catalina Rodríguez	2018	B	
+David Domínguez	2018	B	
+Ares González	2019	B	
+Pablo Bejarano	2020	B	
