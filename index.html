@@ -45,6 +45,26 @@
   <!-- AVISO (config / error) -->
   <div class="aviso" id="aviso" hidden></div>
 
+  <!-- ORDEN DE JUEGO -->
+  <section class="section" id="orden-sec" hidden>
+    <div class="section__head">
+      <span class="section__kicker">Orden de juego</span>
+      <h2 class="section__title">Partidos</h2>
+      <p class="section__sub" id="orden-resumen"></p>
+    </div>
+    <div class="rondas" id="orden"></div>
+  </section>
+
+  <!-- ELIMINATORIAS -->
+  <section class="section" id="elim-sec" hidden>
+    <div class="section__head">
+      <span class="section__kicker">Fase final</span>
+      <h2 class="section__title">Eliminatorias</h2>
+      <p class="section__sub" id="elim-resumen"></p>
+    </div>
+    <div id="elim"></div>
+  </section>
+
   <!-- CLASIFICACIÓN -->
   <section class="section" id="clasificacion-sec">
     <div class="section__head">
@@ -71,6 +91,7 @@
   </footer>
 
   <script src="config.js"></script>
+  <script src="cruces.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

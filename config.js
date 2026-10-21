@@ -10,8 +10,8 @@
 const CONFIG = {
 
   /* ── Nombre del torneo (sale en la cabecera) ── */
-  TITULO: "Campeonato de Tenis",
-  SUBTITULO: "Liga todos contra todos · 2026",
+  TITULO: "Torneo de Octubre · Tenis La Fontana",
+  SUBTITULO: "Fase de grupos a 7 puntos · eliminatorias a 10",
 
   /* ── ID de tu Google Sheet ──
      Está en la dirección de la hoja, entre /d/ y /edit:
@@ -25,6 +25,15 @@ const CONFIG = {
 
   /* ── Cada cuántos segundos se refresca sola la web ── */
   REFRESCO_SEGUNDOS: 30,
+
+  /* ── Formato del torneo ── */
+  PISTAS: 3,                 // partidos simultáneos (2 o 3)
+  RONDAS_PROTEGIDAS: 2,      // las primeras rondas nunca se mueven al apuntar a alguien tarde
+  PUNTOS_FASE1: 7,           // puntos por partido en los grupos
+  PUNTOS_FASE2: 10,          // puntos por partido en las eliminatorias
+  CLASIFICAN: 4,             // cuántos de cada grupo pasan a eliminatorias
+  CAT_ELIM: "Eliminatoria",  // «Categoría» a usar en Resultados para esos partidos
+  CAT_CONSOL: "Consolación", // ídem para el resto de cada grupo
 
   /* ── Puntuación (ajústala a tu gusto) ── */
   PUNTOS: {

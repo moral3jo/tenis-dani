@@ -12,7 +12,7 @@ const norm = (s) => (s == null ? "" : String(s))
   .normalize("NFD").replace(/[̀-ͯ]/g, "")
   .replace(/\s+/g, " ");
 
-let CATEGORIA_ACTIVA = null;
+let VISTA_ACTIVA = null;
 
 /* ---------- Lectura de la hoja (endpoint gviz CSV) ---------- */
 function urlHoja(pestana) {
@@ -75,13 +75,21 @@ function construir(jugadoresRaw, resultadosRaw) {
 
   jugadoresRaw.forEach(j => {
     const nombre = col(j, "Nombre", "Jugador", "Nombre y apellido");
-    const cat = col(j, "Categoría", "Categoria", "Cat") || "General";
+    const cat = col(j, "Categoría", "Categoria", "Cat", "Grupo") || "General";
     if (!nombre) return;
     const ck = norm(cat);
-    if (!categorias.has(ck)) categorias.set(ck, { nombre: cat, jugadores: [], set: new Set() });
+    if (!categorias.has(ck)) categorias.set(ck, { nombre: cat, jugadores: [], base: [], tarde: [], edad: new Map(), set: new Set() });
     const c = categorias.get(ck);
-    if (!c.set.has(norm(nombre))) { c.jugadores.push(nombre); c.set.add(norm(nombre)); }
+    if (c.set.has(norm(nombre))) return;
+    c.set.add(norm(nombre));
+    c.jugadores.push(nombre);
+    c.edad.set(nombre, col(j, "Edad", "Año", "Nacimiento"));
+    (["si", "sí", "x", "1", "true"].includes(norm(col(j, "Tarde", "Tardío"))) ? c.tarde : c.base).push(nombre);
   });
+
+  // Orden de partidos de cada grupo (estable al apuntar gente tarde)
+  const protegidos = Math.ceil(CONFIG.RONDAS_PROTEGIDAS * CONFIG.PISTAS / Math.max(1, categorias.size));
+  categorias.forEach(c => { c.partidos = ordenGrupo(c.base, c.tarde, protegidos); });
 
   // Índice de resultados por clave: catNorm | nombreA | nombreB (ordenados)
   const resultados = new Map();
@@ -184,30 +192,147 @@ function el(tag, opts = {}, ...hijos) {
   return n;
 }
 
+const VISTA_ORDEN = "__orden", VISTA_ELIM = "__elim";
+const ck_elim = norm(CONFIG.CAT_ELIM), ck_consol = norm(CONFIG.CAT_CONSOL);
+
 function pintar(datos) {
   const cats = [...datos.categorias.entries()];
-  const secCru = $("#cruces-sec"), secCla = $("#clasificacion-sec");
+  const secCru = $("#cruces-sec"), secCla = $("#clasificacion-sec"), secOrd = $("#orden-sec"), secEli = $("#elim-sec");
+  [secCru, secCla, secOrd, secEli].forEach(s => s.hidden = true);
   if (!cats.length) {
     mensaje("La hoja no tiene jugadores todavía. Añade filas en la pestaña «" + CONFIG.PESTANA_JUGADORES + "».");
     $("#cat-tabs").replaceChildren();
-    secCru.hidden = true; secCla.hidden = true;
     return;
   }
-  if (!CATEGORIA_ACTIVA || !datos.categorias.has(CATEGORIA_ACTIVA)) CATEGORIA_ACTIVA = cats[0][0];
+  const vistas = [[VISTA_ORDEN, "Partidos"], ...cats.map(([ck, c]) => [ck, c.nombre]), [VISTA_ELIM, "Eliminatorias"]];
+  if (!VISTA_ACTIVA || !vistas.some(v => v[0] === VISTA_ACTIVA)) VISTA_ACTIVA = VISTA_ORDEN;
 
-  // pestañas de categoría (siempre visibles en la cabecera)
   const tabs = $("#cat-tabs");
   tabs.replaceChildren();
-  cats.forEach(([ck, c]) => {
-    const b = el("button", { class: "tab" + (ck === CATEGORIA_ACTIVA ? " tab--on" : ""), text: c.nombre });
-    b.addEventListener("click", () => { CATEGORIA_ACTIVA = ck; pintar(datos); });
+  vistas.forEach(([k, nombre]) => {
+    const b = el("button", { class: "tab" + (k === VISTA_ACTIVA ? " tab--on" : ""), text: nombre });
+    b.addEventListener("click", () => { VISTA_ACTIVA = k; pintar(datos); window.scrollTo({ top: 0 }); });
     tabs.append(b);
   });
 
-  const cat = datos.categorias.get(CATEGORIA_ACTIVA);
-  pintarClasificacion(datos, CATEGORIA_ACTIVA, cat);
-  pintarCruces(datos, CATEGORIA_ACTIVA, cat);
-  secCru.hidden = false;
+  if (VISTA_ACTIVA === VISTA_ORDEN) { secOrd.hidden = false; pintarOrden(datos); }
+  else if (VISTA_ACTIVA === VISTA_ELIM) { secEli.hidden = false; pintarElim(datos); }
+  else {
+    const cat = datos.categorias.get(VISTA_ACTIVA);
+    pintarClasificacion(datos, VISTA_ACTIVA, cat);
+    pintarCruces(datos, VISTA_ACTIVA, cat);
+    secCru.hidden = false;
+  }
+}
+
+/* ¿Tiene resultado este partido de la cola? */
+const jugado = (datos, p) => !!resultadoDe(datos, p.cat, p.a, p.b);
+
+/* Vista principal: rondas con sus pistas */
+function pintarOrden(datos) {
+  const cont = $("#orden");
+  cont.replaceChildren();
+  const cola = intercalar([...datos.categorias.entries()].map(([ck, c]) => ({ cat: ck, partidos: c.partidos })));
+  if (!cola.length) { cont.append(el("p", { class: "vacio", text: "Aún no hay suficientes jugadores." })); return; }
+  const rondas = armarRondas(cola, CONFIG.PISTAS);
+  const nombreCat = (ck) => datos.categorias.get(ck).nombre;
+  const actual = rondas.findIndex(r => r.some(p => !jugado(datos, p)));
+  const hecho = cola.filter(p => jugado(datos, p)).length;
+  $("#orden-resumen").textContent = `${hecho} de ${cola.length} partidos jugados · ${rondas.length} rondas · ${CONFIG.PISTAS} pistas · a ${CONFIG.PUNTOS_FASE1} puntos`;
+
+  rondas.forEach((r, i) => {
+    const estado = i === actual ? "ahora" : i === actual + 1 ? "siguiente" : "";
+    const card = el("div", { class: "ronda" + (estado ? " ronda--" + estado : "") + (actual === -1 || i < actual ? " ronda--hecha" : "") });
+    card.append(el("div", { class: "ronda__head" },
+      el("span", { class: "ronda__num", text: "Ronda " + (i + 1) }),
+      estado ? el("span", { class: "ronda__tag", text: estado === "ahora" ? "Primera por jugar" : "Siguiente" }) : null));
+    r.forEach((p, pista) => {
+      const res = resultadoDe(datos, p.cat, p.a, p.b);
+      const fila = el("div", { class: "partido" });
+      const gana = res ? headToHead(datos, p.cat, p.a, p.b) : 0;
+      fila.append(el("span", { class: "partido__pista", text: "P" + (pista + 1) }));
+      fila.append(el("span", { class: "partido__jug" + (gana === -1 ? " gana" : ""), text: p.a }));
+      fila.append(el("span", { class: "partido__vs", text: res ? `${res.np1 ? "NP" : res.g1}–${res.np2 ? "NP" : res.g2}` : "vs" }));
+      fila.append(el("span", { class: "partido__jug" + (gana === 1 ? " gana" : ""), text: p.b }));
+      fila.append(el("span", { class: "partido__cat", text: nombreCat(p.cat).replace(/^Grupo\s*/i, "") }));
+      card.append(fila);
+    });
+    cont.append(card);
+  });
+}
+
+/* Clasificación de un grupo (nombres ordenados) y si ya ha terminado */
+function estadoGrupo(datos, ck, c) {
+  const lista = clasificacion(datos, ck, c.jugadores).map(x => x.nombre);
+  const terminado = c.partidos.length > 0 && c.partidos.every(([a, b]) => resultadoDe(datos, ck, a, b));
+  return { lista, terminado };
+}
+
+/* Eliminatorias a 10 puntos entre los mejores de A y B + consolación */
+function pintarElim(datos) {
+  const cont = $("#elim");
+  cont.replaceChildren();
+  const cats = [...datos.categorias.entries()];
+  if (cats.length < 2) { cont.append(el("p", { class: "vacio", text: "Hacen falta dos grupos para las eliminatorias." })); return; }
+  const [ckA, cA] = cats[0], [ckB, cB] = cats[1];
+  const A = estadoGrupo(datos, ckA, cA), B = estadoGrupo(datos, ckB, cB);
+  const prov = !(A.terminado && B.terminado);
+  const N = CONFIG.CLASIFICAN;
+  const a = i => A.lista[i], b = i => B.lista[i];
+
+  $("#elim-resumen").textContent = (prov ? "Cruces provisionales: cambian según la clasificación de los grupos. " : "Cruces definitivos. ")
+    + `Primeros ${N} de cada grupo, a ${CONFIG.PUNTOS_FASE2} puntos.`;
+
+  const ganador = (p) => {
+    if (!p.a || !p.b) return null;
+    const g = headToHead(datos, ck_elim, p.a, p.b);
+    return g === -1 ? p.a : g === 1 ? p.b : null;
+  };
+  const tarjeta = (titulo, p, ck) => {
+    const r = p.a && p.b ? resultadoDe(datos, ck, p.a, p.b) : null;
+    const g = r ? headToHead(datos, ck, p.a, p.b) : 0;
+    const card = el("div", { class: "cruce" + (r ? " cruce--jugado" : "") });
+    [[p.a, p.ta, r && (r.np1 ? "NP" : r.g1), -1], [p.b, p.tb, r && (r.np2 ? "NP" : r.g2), 1]].forEach(([n, t, m, w]) => {
+      const lado = el("div", { class: "cruce__lado" + (g === w ? " gana" : "") });
+      lado.append(el("span", { class: "cruce__nombre", text: n || t }));
+      lado.append(el("span", { class: "cruce__marca" + (r ? "" : " cruce__pend"), text: r ? String(m) : "·" }));
+      card.append(lado);
+    });
+    card.append(el("span", { class: "cruce__estado", text: titulo }));
+    return card;
+  };
+
+  const qf = [
+    { a: a(0), b: b(N - 1), ta: "1º " + cA.nombre, tb: N + "º " + cB.nombre },
+    { a: b(1), b: a(N - 2), ta: "2º " + cB.nombre, tb: (N - 1) + "º " + cA.nombre },
+    { a: b(0), b: a(N - 1), ta: "1º " + cB.nombre, tb: N + "º " + cA.nombre },
+    { a: a(1), b: b(N - 2), ta: "2º " + cA.nombre, tb: (N - 1) + "º " + cB.nombre },
+  ];
+  const sf = [
+    { a: ganador(qf[0]), b: ganador(qf[1]), ta: "Ganador C1", tb: "Ganador C2" },
+    { a: ganador(qf[2]), b: ganador(qf[3]), ta: "Ganador C3", tb: "Ganador C4" },
+  ];
+  const fin = { a: ganador(sf[0]), b: ganador(sf[1]), ta: "Ganador S1", tb: "Ganador S2" };
+
+  const bloque = (titulo, tarjetas) => {
+    cont.append(el("h3", { class: "elim__fase", text: titulo }));
+    const g = el("div", { class: "cruces cruces--elim" });
+    tarjetas.forEach(t => g.append(t));
+    cont.append(g);
+  };
+  bloque("Cuartos de final", qf.map((p, i) => tarjeta("C" + (i + 1), p, ck_elim)));
+  bloque("Semifinales", sf.map((p, i) => tarjeta("S" + (i + 1), p, ck_elim)));
+  bloque("Final", [tarjeta("Final", fin, ck_elim)]);
+
+  // Consolación: el resto de cada grupo, por posición
+  const resto = [];
+  const m = Math.max(A.lista.length, B.lista.length);
+  for (let i = N; i < m; i++) resto.push({ a: a(i), b: b(i), ta: "Sin rival", tb: "Sin rival", pos: i + 1 });
+  if (resto.length) {
+    const g = el("div", { class: "cruces cruces--elim" });
+    resto.forEach(p => g.append(tarjeta(p.pos + "º vs " + p.pos + "º", p, ck_consol)));
+    cont.append(el("h3", { class: "elim__fase", text: "Si sobra tiempo · el resto de cada grupo" }), g);
+  }
 }
 
 function pintarClasificacion(datos, ck, cat) {
@@ -247,13 +372,12 @@ function pintarClasificacion(datos, ck, cat) {
   cont.append(wrap);
 }
 
+const edadDe = (cat, n) => cat.edad.get(n) ? " (" + cat.edad.get(n) + ")" : "";
+
 function pintarCruces(datos, ck, cat) {
   const cont = $("#cruces");
   cont.replaceChildren();
-  const js = cat.jugadores;
-  const pares = [];
-  for (let i = 0; i < js.length; i++)
-    for (let j = i + 1; j < js.length; j++) pares.push([js[i], js[j]]);
+  const pares = cat.partidos;
 
   if (!pares.length) { cont.append(el("p", { class: "vacio", text: "Aún no hay suficientes jugadores en esta categoría." })); return; }
 
@@ -263,8 +387,8 @@ function pintarCruces(datos, ck, cat) {
 
     const linA = el("div", { class: "cruce__lado" });
     const linB = el("div", { class: "cruce__lado" });
-    linA.append(el("span", { class: "cruce__nombre", text: a }));
-    linB.append(el("span", { class: "cruce__nombre", text: b }));
+    linA.append(el("span", { class: "cruce__nombre", text: a + edadDe(cat, a) }));
+    linB.append(el("span", { class: "cruce__nombre", text: b + edadDe(cat, b) }));
 
     if (r) {
       const ga = r.np1 ? "NP" : (r.n1 ? r.g1 : "–");
