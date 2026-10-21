@@ -1,4 +1,4 @@
-Nombre	Año	Grupo
+Nombre	Año	Grupo	Baja
 Alexander Hernández	2015	A
 Íñigo Rodríguez	2016	A
 Gonzalo Hernández	2017	A

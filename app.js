@@ -90,16 +90,20 @@ function construir(jugadoresRaw, resultadosRaw) {
     nombre = limpiaNombre(nombre);
     if (!cat) { sinGrupo.push(nombre); return; }
     const ck = ckey(cat);
-    if (!categorias.has(ck)) categorias.set(ck, { nombre: "Grupo " + ckey(cat).toUpperCase(), jugadores: [], edad: new Map(), set: new Set() });
+    if (!categorias.has(ck)) categorias.set(ck, { nombre: "Grupo " + ckey(cat).toUpperCase(), jugadores: [], activos: [], bajas: new Set(), edad: new Map(), set: new Set() });
     const c = categorias.get(ck);
     if (c.set.has(norm(nombre))) { repetidos.push(nombre); return; }
     c.set.add(norm(nombre));
-    c.jugadores.push(nombre);
+    c.jugadores.push(nombre);   // conserva su hueco aunque se dé de baja
+    if (col(j, "Baja", "Baja?").trim()) c.bajas.add(nombre); else c.activos.push(nombre);
     c.edad.set(nombre, col(j, "Edad", "Año", "Nacimiento"));
   });
 
   // Orden de partidos de cada grupo: solo depende de la fila de cada niño
-  categorias.forEach(c => { c.partidos = ordenGrupo(c.jugadores, CONFIG.HUECOS_GRUPO); });
+  // (una baja deja libre su hueco: sus partidos desaparecen y el resto no se mueve)
+  categorias.forEach(c => {
+    c.partidos = ordenGrupo(c.jugadores, CONFIG.HUECOS_GRUPO).filter(([a, b]) => !c.bajas.has(a) && !c.bajas.has(b));
+  });
 
   // Índice de resultados por clave: catNorm | nombreA | nombreB (ordenados)
   const resultados = new Map();
@@ -203,7 +207,7 @@ function el(tag, opts = {}, ...hijos) {
 }
 
 const VISTA_ORDEN = "__orden", VISTA_ELIM = "__elim", VISTA_LISTAS = "__listas";
-const ck_elim = norm(CONFIG.CAT_ELIM), ck_consol = norm(CONFIG.CAT_CONSOL);
+const ck_elim = norm(CONFIG.CAT_ELIM);
 
 function pintar(datos) {
   const cats = [...datos.categorias.entries()];
@@ -247,10 +251,10 @@ function pintarListas(datos) {
 
   const cols = el("div", { class: "cols" });
   datos.categorias.forEach(c => {
-    const col = el("div", { class: "col" }, el("h3", { class: "col__titulo", text: `${c.nombre} · ${c.jugadores.length}` }));
+    const col = el("div", { class: "col" }, el("h3", { class: "col__titulo", text: `${c.nombre} · ${c.activos.length}` }));
     c.jugadores.forEach((n, i) => {
       const e = c.edad.get(n);
-      col.append(el("div", { class: "jug" },
+      col.append(el("div", { class: "jug" + (c.bajas.has(n) ? " jug--baja" : "") },
         el("span", { class: "jug__n", text: String(i + 1) }),
         el("span", { class: "jug__nom", text: n }),
         e ? el("span", { class: "jug__edad", text: e }) : null));
@@ -323,12 +327,12 @@ function pintarOrden(datos) {
 
 /* Clasificación de un grupo (nombres ordenados) y si ya ha terminado */
 function estadoGrupo(datos, ck, c) {
-  const lista = clasificacion(datos, ck, c.jugadores).map(x => x.nombre);
+  const lista = clasificacion(datos, ck, c.activos).map(x => x.nombre);
   const terminado = c.partidos.length > 0 && c.partidos.every(([a, b]) => resultadoDe(datos, ck, a, b));
   return { lista, terminado };
 }
 
-/* Eliminatorias entre los mejores de A y B + consolación */
+/* Eliminatorias entre los mejores de cada grupo */
 function pintarElim(datos) {
   const cont = $("#elim");
   cont.replaceChildren();
@@ -383,20 +387,10 @@ function pintarElim(datos) {
   bloque("Cuartos de final", qf.map((p, i) => tarjeta("C" + (i + 1), p, ck_elim)));
   bloque("Semifinales", sf.map((p, i) => tarjeta("S" + (i + 1), p, ck_elim)));
   bloque("Final", [tarjeta("Final", fin, ck_elim)]);
-
-  // Consolación: el resto de cada grupo, por posición
-  const resto = [];
-  const m = Math.max(A.lista.length, B.lista.length);
-  for (let i = N; i < m; i++) resto.push({ a: a(i), b: b(i), ta: "Sin rival", tb: "Sin rival", pos: i + 1 });
-  if (resto.length) {
-    const g = el("div", { class: "cruces cruces--elim" });
-    resto.forEach(p => g.append(tarjeta(p.pos + "º vs " + p.pos + "º", p, ck_consol)));
-    cont.append(el("h3", { class: "elim__fase", text: "Si sobra tiempo · el resto de cada grupo" }), g);
-  }
 }
 
 function pintarClasificacion(datos, ck, cat) {
-  const lista = clasificacion(datos, ck, cat.jugadores);
+  const lista = clasificacion(datos, ck, cat.activos);
   const cont = $("#clasificacion");
   const sec = $("#clasificacion-sec");
   cont.replaceChildren();

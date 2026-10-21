@@ -31,14 +31,15 @@ cada 30 segundos.
 Abajo a la izquierda verás una pestaña («Hoja 1»). Haz doble clic y renómbrala a **`Jugadores`**.
 En la **primera fila** escribe estas tres cabeceras (una por columna):
 
-| Nombre         | Año  | Grupo |
-|----------------|------|-------|
-| Íñigo R.       | 2016 | A     |
-| Javier P.      | 2018 | B     |
+| Nombre         | Año  | Grupo | Baja |
+|----------------|------|-------|------|
+| Íñigo R.       | 2016 | A     |      |
+| Javier P.      | 2018 | B     | x    |
 
 - Se apunta **siempre debajo**, según llegan; la web separa los grupos y lo deja limpio. En `Grupo` basta `A` o `B`.
 - Los partidos del niño que llega se colocan **los últimos de cada ronda** y no se mueve nada de lo ya anunciado.
-- ⚠ **No reordenes la lista ni borres filas del medio** (el orden de los partidos depende de la fila de cada niño). Si alguien se baja, es mejor dejarlo y avisar.
+- ⚠ **No reordenes la lista ni borres filas** (el orden de los partidos depende de la fila de cada niño).
+- Si alguien **se baja**, déjalo en su fila y escribe una `x` en `Baja`: sus partidos desaparecen y todo lo demás se queda como está.
 
 > 🔒 Por ser menores: usa **nombre + inicial**, nunca apellidos completos (la web es pública).
 
@@ -50,7 +51,7 @@ Cabeceras en la primera fila (5 columnas):
 |-----------|----------|----------|---------|---------|
 | A         | Íñigo R. | Álvaro P.| 7       | 4       |
 
-En `Categoría` pon `A` o `B` (o `Eliminatoria` / `Consolación` para la fase final).
+En `Categoría` pon `A` o `B` (o `Eliminatoria` para la fase final).
 
 - Pones **una fila por partido jugado**. No hace falta rellenar los que faltan.
 - `Juegos1` y `Juegos2` son los juegos que hizo cada uno.

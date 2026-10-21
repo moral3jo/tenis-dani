@@ -26,10 +26,9 @@ const CONFIG = {
   REFRESCO_SEGUNDOS: 30,
 
   /* ── Formato del torneo ── */
-  HUECOS_GRUPO: 8,           // tamaño máximo previsto de cada grupo (si hay más, el cuadro crece solo)
+  HUECOS_GRUPO: 10,          // tamaño máximo previsto de cada grupo (si hay más, el cuadro crece solo)
   CLASIFICAN: 4,             // cuántos de cada grupo pasan a eliminatorias
   CAT_ELIM: "Eliminatoria",  // «Categoría» a usar en Resultados para esos partidos
-  CAT_CONSOL: "Consolación", // ídem para el resto de cada grupo
 
   /* ── Puntuación (ajústala a tu gusto) ── */
   PUNTOS: {
