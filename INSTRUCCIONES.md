@@ -37,7 +37,7 @@ En la **primera fila** escribe estas tres cabeceras (una por columna):
 | Javier P.      | 2018 | B     | x    |
 
 - Se apunta **siempre debajo**, según llegan; la web separa los grupos y lo deja limpio. En `Grupo` basta `A` o `B`.
-- Los partidos del niño que llega se colocan **los últimos de cada ronda** y no se mueve nada de lo ya anunciado.
+- Ronda 1: 1º-2º, 3º-4º, 5º-6º… (por orden de la lista). Los partidos del niño que llega se colocan **los últimos de cada ronda**; lo que ya existe no cambia de orden.
 - ⚠ **No reordenes la lista ni borres filas** (el orden de los partidos depende de la fila de cada niño).
 - Si alguien **se baja**, déjalo en su fila y escribe una `x` en `Baja`: sus partidos desaparecen y todo lo demás se queda como está.
 

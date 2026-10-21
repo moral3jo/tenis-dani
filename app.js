@@ -102,7 +102,7 @@ function construir(jugadoresRaw, resultadosRaw) {
   // Orden de partidos de cada grupo: solo depende de la fila de cada niño
   // (una baja deja libre su hueco: sus partidos desaparecen y el resto no se mueve)
   categorias.forEach(c => {
-    c.partidos = ordenGrupo(c.jugadores, CONFIG.HUECOS_GRUPO).filter(([a, b]) => !c.bajas.has(a) && !c.bajas.has(b));
+    c.partidos = ordenGrupo(c.jugadores).filter(([a, b]) => !c.bajas.has(a) && !c.bajas.has(b));
   });
 
   // Índice de resultados por clave: catNorm | nombreA | nombreB (ordenados)

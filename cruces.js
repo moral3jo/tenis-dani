@@ -7,34 +7,22 @@
    anterior. (No reordenes ni borres filas del medio.)
    ========================================================= */
 
-/* Todos contra todos por rondas (método del círculo) con huecos fijos.
-   Cada jugador ocupa un hueco del cuadro según su fila en la hoja (repartidos
-   con un salto para que, aun con pocos jugadores, nadie juegue seguido). Los
-   huecos vacíos son «descansos» que desaparecen del calendario. Al apuntar a
-   alguien nuevo solo se rellena un hueco: sus partidos entran al FINAL de cada
-   ronda y ningún partido existente cambia de orden.
-   Si hay más jugadores que huecos, el cuadro crece al siguiente número par. */
-const mcd = (a, b) => (b ? mcd(b, a % b) : a);
-
-function ordenGrupo(jugadores, huecos = 14) {
-  const n = Math.max(huecos, jugadores.length + (jugadores.length % 2));
-  let paso = Math.round(n * 0.64);
-  while (mcd(paso, n) !== 1) paso++;
-  const hueco = new Array(n).fill(-1);                  // hueco -> índice de jugador
-  jugadores.forEach((_, i) => { hueco[(i * paso) % n] = i; });
-  const rueda = Array.from({ length: n }, (_, i) => i);
-  const out = [];
-  for (let r = 0; r < n - 1; r++) {
-    const ronda = [];
-    for (let i = 0; i < n / 2; i++) {
-      const x = hueco[rueda[i]], y = hueco[rueda[n - 1 - i]];
-      if (x >= 0 && y >= 0) ronda.push([Math.min(x, y), Math.max(x, y)]);
+/* Calendario todos contra todos, sin límite de jugadores.
+   Los jugadores se agrupan de 8 en 8 según su fila en la hoja. La ronda de
+   cada pareja sale solo de sus posiciones (i XOR j): ronda 1 = 1º-2º, 3º-4º,
+   5º-6º, 7º-8º; ronda 2 = 1º-3º, 2º-4º, 5º-7º…; y dentro de cada ronda el
+   más reciente va el último. Como el orden de una pareja no depende de
+   cuántos jugadores haya, apuntar a alguien más NUNCA reordena lo existente:
+   sus partidos entran al final de cada ronda. Una baja solo quita los suyos. */
+function ordenGrupo(jugadores) {
+  const partidos = [];
+  for (let i = 0; i < jugadores.length; i++)
+    for (let j = i + 1; j < jugadores.length; j++) {
+      const ronda = (i & 7) ^ (j & 7) || 8;     // 1..7 entre posiciones distintas, 8 si coinciden
+      partidos.push({ ronda, i, j });
     }
-    ronda.sort((p, q) => p[1] - q[1]);          // el más reciente, el último de la ronda
-    ronda.forEach(([x, y]) => out.push([jugadores[x], jugadores[y]]));
-    rueda.splice(1, 0, rueda.pop());
-  }
-  return out;
+  partidos.sort((p, q) => p.ronda - q.ronda || p.j - q.j);
+  return partidos.map(p => [jugadores[p.i], jugadores[p.j]]);
 }
 
 /* Mezcla las listas de los grupos (A1,B1,A2,B2…) en una sola cola.
