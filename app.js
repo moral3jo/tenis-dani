@@ -228,42 +228,64 @@ function pintar(datos) {
 }
 
 /* ¿Tiene resultado este partido de la cola? */
-const jugado = (datos, p) => !!resultadoDe(datos, p.cat, p.a, p.b);
+/* Nombre corto para pantallas estrechas: el nombre de pila (+ inicial del apellido si se repite) */
+function nombreCorto(cat, nombre) {
+  const pila = nombre.trim().split(/\s+/)[0];
+  const rep = cat.jugadores.filter(n => norm(n.trim().split(/\s+/)[0]) === norm(pila)).length > 1;
+  const ap = nombre.trim().split(/\s+/)[1];
+  return rep && ap ? pila + " " + ap[0] + "." : pila;
+}
 
-/* Vista principal: cola única de partidos (se llaman según queden pistas libres) */
-function filaPartido(datos, p, n) {
-  const res = resultadoDe(datos, p.cat, p.a, p.b);
-  const gana = res ? headToHead(datos, p.cat, p.a, p.b) : 0;
-  const fila = el("div", { class: "partido" });
-  fila.append(el("span", { class: "partido__n", text: String(n) }));
-  fila.append(el("span", { class: "partido__jug" + (gana === -1 ? " gana" : ""), text: p.a }));
-  fila.append(el("span", { class: "partido__vs", text: res ? `${res.np1 ? "NP" : res.g1}–${res.np2 ? "NP" : res.g2}` : "vs" }));
-  fila.append(el("span", { class: "partido__jug" + (gana === 1 ? " gana" : ""), text: p.b }));
-  fila.append(el("span", { class: "partido__cat", text: datos.categorias.get(p.cat).nombre.replace(/^Grupo\s*/i, "") }));
-  return fila;
+/* Vista principal: una columna por grupo con sus próximos partidos (también en móvil) */
+function tarjetaPartido(datos, ck, cat, a, b, n, clase) {
+  const res = resultadoDe(datos, ck, a, b);
+  const gana = res ? headToHead(datos, ck, a, b) : 0;
+  const card = el("div", { class: "partido " + clase });
+  card.append(el("span", { class: "partido__n", text: String(n) }));
+  const lado = (nom, marca, w) => el("div", { class: "partido__lado" + (gana === w ? " gana" : "") },
+    el("span", { class: "partido__nom", text: nombreCorto(cat, nom) }),
+    res ? el("span", { class: "partido__marca", text: marca }) : null);
+  card.append(lado(a, res && (res.np1 ? "NP" : res.g1), -1));
+  card.append(el("span", { class: "partido__vs", text: "vs" }));
+  card.append(lado(b, res && (res.np2 ? "NP" : res.g2), 1));
+  return card;
 }
 
 function pintarOrden(datos) {
   const cont = $("#orden");
   cont.replaceChildren();
-  const cola = intercalar([...datos.categorias.entries()].map(([ck, c]) => ({ cat: ck, partidos: c.partidos })));
-  if (!cola.length) { cont.append(el("p", { class: "vacio", text: "Aún no hay suficientes jugadores." })); return; }
-  const hechos = [], pend = [];
-  cola.forEach((p, i) => (jugado(datos, p) ? hechos : pend).push([p, i + 1]));
-  $("#orden-resumen").textContent = `${hechos.length} de ${cola.length} partidos jugados · a ${CONFIG.PUNTOS_FASE1} puntos`;
+  const cats = [...datos.categorias.entries()];
+  const total = cats.reduce((s, [, c]) => s + c.partidos.length, 0);
+  if (!total) { cont.append(el("p", { class: "vacio", text: "Aún no hay suficientes jugadores." })); return; }
+  const hechosN = cats.reduce((s, [ck, c]) => s + c.partidos.filter(([a, b]) => resultadoDe(datos, ck, a, b)).length, 0);
+  $("#orden-resumen").textContent = `${hechosN} de ${total} partidos jugados · a ${CONFIG.PUNTOS_FASE1} puntos`;
+
+  const cols = el("div", { class: "cols" });
+  const hechos = [];
+  cats.forEach(([ck, c]) => {
+    const col = el("div", { class: "col" }, el("h3", { class: "col__titulo", text: c.nombre }));
+    let sig = 0;
+    c.partidos.forEach(([a, b], i) => {
+      if (resultadoDe(datos, ck, a, b)) { hechos.push([ck, c, a, b, i + 1]); return; }
+      col.append(tarjetaPartido(datos, ck, c, a, b, i + 1, sig === 0 ? "partido--siguiente" : sig < 3 ? "partido--proximo" : ""));
+      sig++;
+    });
+    if (!sig) col.append(el("p", { class: "vacio", text: "¡Grupo terminado!" }));
+    cols.append(col);
+  });
+  cont.append(cols);
 
   if (hechos.length) {
     const d = el("details", { class: "jugados" }, el("summary", { text: `Jugados (${hechos.length})` }));
-    hechos.forEach(([p, n]) => d.append(filaPartido(datos, p, n)));
+    const g = el("div", { class: "cols" });
+    cats.forEach(([ck, c]) => {
+      const col = el("div", { class: "col" });
+      hechos.filter(h => h[0] === ck).forEach(([, cc, a, b, n]) => col.append(tarjetaPartido(datos, ck, cc, a, b, n, "")));
+      g.append(col);
+    });
+    d.append(g);
     cont.append(d);
   }
-  if (!pend.length) { cont.append(el("p", { class: "vacio", text: "¡Fase de grupos terminada! Mira las eliminatorias." })); return; }
-  pend.forEach(([p, n], i) => {
-    const fila = filaPartido(datos, p, n);
-    if (i < 3) fila.classList.add("partido--proximo");
-    if (i === 0) fila.classList.add("partido--siguiente");
-    cont.append(fila);
-  });
 }
 
 /* Clasificación de un grupo (nombres ordenados) y si ya ha terminado */
