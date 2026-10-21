@@ -162,9 +162,9 @@ En Cloudflare: tu proyecto → **Custom domains → Set up a custom domain** y s
 
 ## Meter resultados sin escribir nombres
 
-Cuando los niños estén fijos, en la web (pestaña **Partidos**) pulsa **«Copiar N partidos para la hoja»**
-y pégalos en la pestaña `Resultados` en la celda que indica (la primera vacía de la columna A).
+Cuando los niños estén fijos, abre la web, pestaña **Partidos**, y al final de todo pulsa **«Listado partidos»**.
+Se copia la lista completa (con la cabecera). En la hoja, pestaña `Resultados`, toca la celda **A1** y pega.
 Así los nombres ya están escritos y en cada partido solo hay que teclear **los dos marcadores**
 (columnas `Juegos1` y `Juegos2`; `NP` si alguien no se presenta).
-El botón solo copia los partidos que aún no están en la hoja, así que se puede volver a pulsar sin duplicar.
+Si la hoja ya tiene filas, el botón copia solo las que faltan y te dice en qué celda pegarlas.
 En la pestaña **Final**, el mismo botón añade los cruces de eliminatorias según se vayan conociendo.
