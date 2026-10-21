@@ -26,7 +26,7 @@ const CONFIG = {
   REFRESCO_SEGUNDOS: 30,
 
   /* ── Formato del torneo ── */
-  PARTIDOS_PROTEGIDOS: 6,    // los primeros partidos de la cola nunca se mueven al apuntar a alguien tarde
+  HUECOS_GRUPO: 8,           // tamaño máximo previsto de cada grupo (si hay más, el cuadro crece solo)
   CLASIFICAN: 4,             // cuántos de cada grupo pasan a eliminatorias
   CAT_ELIM: "Eliminatoria",  // «Categoría» a usar en Resultados para esos partidos
   CAT_CONSOL: "Consolación", // ídem para el resto de cada grupo

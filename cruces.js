@@ -1,86 +1,33 @@
 /* =========================================================
    Generación de cruces (sin dependencias, sin estado guardado)
    ---------------------------------------------------------
-   El orden de los partidos se calcula SIEMPRE igual a partir
-   de la hoja, así que al apuntar a alguien tarde los partidos
-   existentes conservan su orden relativo:
-     1. Los jugadores sin marca «Tarde» forman el cuadro base
-        (método del círculo: todos contra todos, por rondas).
-     2. Cada jugador «Tarde» se va insertando, en orden de fila,
-        repartiendo sus partidos por la cola SIN tocar los
-        primeros partidos (los que ya se han anunciado).
-   El orden no depende del número de pistas: es una cola única.
+   El orden de los partidos sale SIEMPRE igual de la hoja:
+   solo depende de la fila que ocupa cada jugador en su grupo.
+   Se apunta debajo y el calendario se amplía sin mover lo
+   anterior. (No reordenes ni borres filas del medio.)
    ========================================================= */
 
-/* Todos contra todos por rondas (método del círculo) */
-function rondasCirculo(jugadores) {
-  const p = [...jugadores];
-  if (p.length % 2) p.push(null);
-  const n = p.length, out = [];
+/* Todos contra todos por rondas (método del círculo) con huecos fijos.
+   Cada jugador ocupa el hueco que le toca por su fila en la hoja; los huecos
+   vacíos son «descansos» que desaparecen del calendario. Al apuntar a alguien
+   nuevo solo se rellena un hueco: sus partidos entran al FINAL de cada ronda y
+   ningún partido existente cambia de orden.
+   Si hay más jugadores que huecos, el cuadro crece al siguiente número par. */
+function ordenGrupo(jugadores, huecos = 8) {
+  const n = Math.max(huecos, jugadores.length + (jugadores.length % 2));
+  const rueda = Array.from({ length: n }, (_, i) => i);
+  const out = [];
   for (let r = 0; r < n - 1; r++) {
+    const ronda = [];
     for (let i = 0; i < n / 2; i++) {
-      const a = p[i], b = p[n - 1 - i];
-      if (a && b) out.push([a, b]);
+      const x = rueda[i], y = rueda[n - 1 - i];
+      if (x < jugadores.length && y < jugadores.length) ronda.push([Math.min(x, y), Math.max(x, y)]);
     }
-    p.splice(1, 0, p.pop());
+    ronda.sort((p, q) => p[1] - q[1]);          // el más reciente, el último de la ronda
+    ronda.forEach(([x, y]) => out.push([jugadores[x], jugadores[y]]));
+    rueda.splice(1, 0, rueda.pop());
   }
   return out;
-}
-
-/* Mete a `nuevo` contra todos los `rivales` en la lista, sin reordenar
-   los partidos existentes ni tocar los primeros `protegidos`. */
-function insertarJugador(lista, nuevo, rivales, protegidos) {
-  const m = rivales.length;
-  if (!m) return lista.slice();
-  const s = Math.min(protegidos, lista.length);
-  const total = lista.length + m;
-  const span = total - s;
-
-  // posiciones finales de los partidos nuevos, repartidas por la cola
-  const pos = new Set();
-  for (let k = 0; k < m; k++) {
-    let x = s + Math.floor((k + 0.5) * span / m);
-    while (pos.has(x)) x++;
-    pos.add(x);
-  }
-
-  const res = lista.slice(0, s);
-  const ultimo = new Map(); // jugador -> índice de su último partido colocado
-  res.forEach((pt, i) => { ultimo.set(pt[0], i); ultimo.set(pt[1], i); });
-  const resto = new Set(rivales);
-  let viejo = s;
-
-  for (let i = s; i < total; i++) {
-    if (pos.has(i)) {
-      // rival que más lleva sin jugar (y que no juegue justo después)
-      const sig = lista[viejo];
-      let mejor = null, mejorD = -Infinity;
-      for (const q of resto) {
-        let d = i - (ultimo.has(q) ? ultimo.get(q) : -99);
-        if (sig && (sig[0] === q || sig[1] === q)) d = Math.min(d, 1);
-        if (d > mejorD) { mejorD = d; mejor = q; }
-      }
-      resto.delete(mejor);
-      res.push([nuevo, mejor]);
-      ultimo.set(mejor, i);
-    } else {
-      const pt = lista[viejo++];
-      res.push(pt);
-      ultimo.set(pt[0], i); ultimo.set(pt[1], i);
-    }
-  }
-  return res;
-}
-
-/* Orden de partidos de un grupo: base + tardíos en orden de llegada */
-function ordenGrupo(base, tarde, protegidos) {
-  let lista = rondasCirculo(base);
-  const jug = [...base];
-  for (const t of tarde) {
-    lista = insertarJugador(lista, t, jug, protegidos);
-    jug.push(t);
-  }
-  return lista;
 }
 
 /* Mezcla las listas de los grupos (A1,B1,A2,B2…) en una sola cola.
@@ -95,4 +42,4 @@ function intercalar(listas) {
   return cola;
 }
 
-if (typeof module !== "undefined") module.exports = { rondasCirculo, insertarJugador, ordenGrupo, intercalar };
+if (typeof module !== "undefined") module.exports = { ordenGrupo, intercalar };

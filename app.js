@@ -90,18 +90,16 @@ function construir(jugadoresRaw, resultadosRaw) {
     nombre = limpiaNombre(nombre);
     if (!cat) { sinGrupo.push(nombre); return; }
     const ck = ckey(cat);
-    if (!categorias.has(ck)) categorias.set(ck, { nombre: "Grupo " + ckey(cat).toUpperCase(), jugadores: [], base: [], tarde: [], edad: new Map(), set: new Set() });
+    if (!categorias.has(ck)) categorias.set(ck, { nombre: "Grupo " + ckey(cat).toUpperCase(), jugadores: [], edad: new Map(), set: new Set() });
     const c = categorias.get(ck);
     if (c.set.has(norm(nombre))) { repetidos.push(nombre); return; }
     c.set.add(norm(nombre));
     c.jugadores.push(nombre);
     c.edad.set(nombre, col(j, "Edad", "Año", "Nacimiento"));
-    (["si", "sí", "x", "1", "true"].includes(norm(col(j, "Tarde", "Tardío"))) ? c.tarde : c.base).push(nombre);
   });
 
-  // Orden de partidos de cada grupo (estable al apuntar gente tarde)
-  const protegidos = Math.ceil(CONFIG.PARTIDOS_PROTEGIDOS / Math.max(1, categorias.size));
-  categorias.forEach(c => { c.partidos = ordenGrupo(c.base, c.tarde, protegidos); });
+  // Orden de partidos de cada grupo: solo depende de la fila de cada niño
+  categorias.forEach(c => { c.partidos = ordenGrupo(c.jugadores, CONFIG.HUECOS_GRUPO); });
 
   // Índice de resultados por clave: catNorm | nombreA | nombreB (ordenados)
   const resultados = new Map();
@@ -252,7 +250,7 @@ function pintarListas(datos) {
     const col = el("div", { class: "col" }, el("h3", { class: "col__titulo", text: `${c.nombre} · ${c.jugadores.length}` }));
     c.jugadores.forEach((n, i) => {
       const e = c.edad.get(n);
-      col.append(el("div", { class: "jug" + (c.tarde.includes(n) ? " jug--tarde" : "") },
+      col.append(el("div", { class: "jug" },
         el("span", { class: "jug__n", text: String(i + 1) }),
         el("span", { class: "jug__nom", text: n }),
         e ? el("span", { class: "jug__edad", text: e }) : null));

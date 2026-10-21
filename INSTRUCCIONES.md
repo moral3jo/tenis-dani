@@ -29,16 +29,16 @@ cada 30 segundos.
 
 ### Paso 1.2 — Pestaña «Jugadores»
 Abajo a la izquierda verás una pestaña («Hoja 1»). Haz doble clic y renómbrala a **`Jugadores`**.
-En la **primera fila** escribe estas cuatro cabeceras (una por columna):
+En la **primera fila** escribe estas tres cabeceras (una por columna):
 
-| Nombre         | Año  | Grupo | Tarde |
-|----------------|------|-------|-------|
-| Íñigo R.       | 2016 | A     |       |
-| Javier P.      | 2018 | B     |       |
-| Niño que llega | 2017 | A     | x     |
+| Nombre         | Año  | Grupo |
+|----------------|------|-------|
+| Íñigo R.       | 2016 | A     |
+| Javier P.      | 2018 | B     |
 
-- Se apunta **en cualquier orden**; la web separa los grupos y lo deja limpio. En `Grupo` basta `A` o `B`.
-- **`Tarde`**: si llega cuando ya se han enseñado los cruces, ponle una `x`. Así no se mueven los partidos ya anunciados.
+- Se apunta **siempre debajo**, según llegan; la web separa los grupos y lo deja limpio. En `Grupo` basta `A` o `B`.
+- Los partidos del niño que llega se colocan **los últimos de cada ronda** y no se mueve nada de lo ya anunciado.
+- ⚠ **No reordenes la lista ni borres filas del medio** (el orden de los partidos depende de la fila de cada niño). Si alguien se baja, es mejor dejarlo y avisar.
 
 > 🔒 Por ser menores: usa **nombre + inicial**, nunca apellidos completos (la web es pública).
 
