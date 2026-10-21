@@ -14,6 +14,13 @@ const norm = (s) => (s == null ? "" : String(s))
 
 let VISTA_ACTIVA = null;
 
+/* Espacios limpios y, si lo escribieron todo en minúsculas/mayúsculas, Mayúscula Inicial */
+const limpiaNombre = (s) => {
+  s = s.trim().replace(/\s+/g, " ");
+  return s === s.toLowerCase() || s === s.toUpperCase()
+    ? s.toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase()) : s;
+};
+
 const ckey = (s) => norm(s).replace(/^grupo /, "");
 
 /* ---------- Lectura de la hoja (endpoint gviz CSV) ---------- */
@@ -75,14 +82,17 @@ const ES_NP = (v) => ["np", "wo", "w.o.", "n.p.", "-", "x"].includes(norm(v));
 function construir(jugadoresRaw, resultadosRaw) {
   const categorias = new Map(); // catNorm -> { nombre, jugadores:[], jugadoresNorm:Set }
 
+  const sinGrupo = [], repetidos = [];
   jugadoresRaw.forEach(j => {
-    const nombre = col(j, "Nombre", "Jugador", "Nombre y apellido");
-    const cat = col(j, "Categoría", "Categoria", "Cat", "Grupo") || "General";
+    let nombre = col(j, "Nombre", "Jugador", "Nombre y apellido");
+    const cat = col(j, "Categoría", "Categoria", "Cat", "Grupo");
     if (!nombre) return;
+    nombre = limpiaNombre(nombre);
+    if (!cat) { sinGrupo.push(nombre); return; }
     const ck = ckey(cat);
-    if (!categorias.has(ck)) categorias.set(ck, { nombre: /^[a-z]$/i.test(cat.trim()) ? "Grupo " + cat.trim().toUpperCase() : cat, jugadores: [], base: [], tarde: [], edad: new Map(), set: new Set() });
+    if (!categorias.has(ck)) categorias.set(ck, { nombre: "Grupo " + ckey(cat).toUpperCase(), jugadores: [], base: [], tarde: [], edad: new Map(), set: new Set() });
     const c = categorias.get(ck);
-    if (c.set.has(norm(nombre))) return;
+    if (c.set.has(norm(nombre))) { repetidos.push(nombre); return; }
     c.set.add(norm(nombre));
     c.jugadores.push(nombre);
     c.edad.set(nombre, col(j, "Edad", "Año", "Nacimiento"));
@@ -107,7 +117,7 @@ function construir(jugadoresRaw, resultadosRaw) {
     resultados.set(clave, { cat: ck, j1, j2, g1, g2 });
   });
 
-  return { categorias, resultados };
+  return { categorias, resultados, sinGrupo, repetidos };
 }
 
 function claveCruce(catNorm, a, b) {
@@ -194,19 +204,19 @@ function el(tag, opts = {}, ...hijos) {
   return n;
 }
 
-const VISTA_ORDEN = "__orden", VISTA_ELIM = "__elim";
+const VISTA_ORDEN = "__orden", VISTA_ELIM = "__elim", VISTA_LISTAS = "__listas";
 const ck_elim = norm(CONFIG.CAT_ELIM), ck_consol = norm(CONFIG.CAT_CONSOL);
 
 function pintar(datos) {
   const cats = [...datos.categorias.entries()];
-  const secCru = $("#cruces-sec"), secCla = $("#clasificacion-sec"), secOrd = $("#orden-sec"), secEli = $("#elim-sec");
-  [secCru, secCla, secOrd, secEli].forEach(s => s.hidden = true);
+  const secLis = $("#listas-sec"), secCru = $("#cruces-sec"), secCla = $("#clasificacion-sec"), secOrd = $("#orden-sec"), secEli = $("#elim-sec");
+  [secLis, secCru, secCla, secOrd, secEli].forEach(s => s.hidden = true);
   if (!cats.length) {
     mensaje("La hoja no tiene jugadores todavía. Añade filas en la pestaña «" + CONFIG.PESTANA_JUGADORES + "».");
     $("#cat-tabs").replaceChildren();
     return;
   }
-  const vistas = [[VISTA_ORDEN, "Partidos"], ...cats.map(([ck, c]) => [ck, c.nombre]), [VISTA_ELIM, "Eliminatorias"]];
+  const vistas = [[VISTA_LISTAS, "Listas"], [VISTA_ORDEN, "Partidos"], ...cats.map(([ck, c]) => [ck, c.nombre]), [VISTA_ELIM, "Eliminatorias"]];
   if (!VISTA_ACTIVA || !vistas.some(v => v[0] === VISTA_ACTIVA)) VISTA_ACTIVA = VISTA_ORDEN;
 
   const tabs = $("#cat-tabs");
@@ -217,7 +227,8 @@ function pintar(datos) {
     tabs.append(b);
   });
 
-  if (VISTA_ACTIVA === VISTA_ORDEN) { secOrd.hidden = false; pintarOrden(datos); }
+  if (VISTA_ACTIVA === VISTA_LISTAS) { secLis.hidden = false; pintarListas(datos); }
+  else if (VISTA_ACTIVA === VISTA_ORDEN) { secOrd.hidden = false; pintarOrden(datos); }
   else if (VISTA_ACTIVA === VISTA_ELIM) { secEli.hidden = false; pintarElim(datos); }
   else {
     const cat = datos.categorias.get(VISTA_ACTIVA);
@@ -225,6 +236,30 @@ function pintar(datos) {
     pintarCruces(datos, VISTA_ACTIVA, cat);
     secCru.hidden = false;
   }
+}
+
+/* Listas limpias de cada grupo + avisos de lo que no cuadra en la hoja */
+function pintarListas(datos) {
+  const cont = $("#listas");
+  cont.replaceChildren();
+  const avisos = [];
+  if (datos.sinGrupo.length) avisos.push("Sin grupo (no juegan hasta ponerlo): " + datos.sinGrupo.join(", "));
+  if (datos.repetidos.length) avisos.push("Repetidos (se ignoran): " + datos.repetidos.join(", "));
+  avisos.forEach(t => cont.append(el("p", { class: "aviso-lista", text: "⚠ " + t })));
+
+  const cols = el("div", { class: "cols" });
+  datos.categorias.forEach(c => {
+    const col = el("div", { class: "col" }, el("h3", { class: "col__titulo", text: `${c.nombre} · ${c.jugadores.length}` }));
+    c.jugadores.forEach((n, i) => {
+      const e = c.edad.get(n);
+      col.append(el("div", { class: "jug" + (c.tarde.includes(n) ? " jug--tarde" : "") },
+        el("span", { class: "jug__n", text: String(i + 1) }),
+        el("span", { class: "jug__nom", text: n }),
+        e ? el("span", { class: "jug__edad", text: e }) : null));
+    });
+    cols.append(col);
+  });
+  cont.append(cols);
 }
 
 /* ¿Tiene resultado este partido de la cola? */

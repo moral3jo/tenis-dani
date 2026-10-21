@@ -139,3 +139,11 @@ a{color:inherit;text-decoration:none;}
 .elim__fase:first-child{margin-top:0;}
 #elim .cruce{background:var(--ink);color:var(--cream);}
 #elim .cruce--jugado{background:var(--ink-2);}
+
+/* ---------- LISTAS ---------- */
+.jug{display:grid;grid-template-columns:1.4rem 1fr auto;align-items:center;gap:.3rem;background:var(--cream-2);border:1px solid var(--line);border-radius:10px;padding:.5rem .6rem;font-weight:600;font-size:.98rem;}
+.jug__n{font-family:var(--serif);font-weight:700;font-size:.75rem;color:var(--clay);}
+.jug__nom{overflow-wrap:anywhere;line-height:1.2;}
+.jug__edad{font-size:.7rem;font-weight:800;opacity:.6;}
+.jug--tarde{border-style:dashed;border-color:var(--clay);}
+.aviso-lista{background:#fff6d6;border:1px solid #e7cf6a;color:#6b5300;border-radius:12px;padding:.7rem .9rem;font-weight:600;margin-bottom:.7rem;max-width:720px;}
