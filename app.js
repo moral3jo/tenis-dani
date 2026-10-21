@@ -119,7 +119,7 @@ function construir(jugadoresRaw, resultadosRaw) {
     resultados.set(clave, { cat: ck, j1, j2, g1, g2 });
   });
 
-  return { categorias, resultados, sinGrupo, repetidos };
+  return { categorias, resultados, sinGrupo, repetidos, filasResultados: resultadosRaw.length };
 }
 
 function claveCruce(catNorm, a, b) {
@@ -265,6 +265,29 @@ function pintarListas(datos) {
 }
 
 /* ¿Tiene resultado este partido de la cola? */
+/* Botón «Copiar partidos para la hoja»: copia las filas que aún no están en
+   Resultados (con los nombres ya escritos) para pegarlas de una vez y que solo
+   haya que teclear los dos marcadores en el móvil. */
+function botonCopiar(cont, datos, filas) {
+  const faltan = filas.filter(([cat, a, b]) => !datos.resultados.has(claveCruce(norm(cat) === ck_elim ? ck_elim : ckey(cat), a, b)));
+  if (!faltan.length) return;
+  const caja = el("div", { class: "copiar" });
+  const btn = el("button", { class: "copiar__btn", text: `Copiar ${faltan.length} partidos para la hoja` });
+  const msg = el("p", { class: "copiar__msg", text: "" });
+  btn.addEventListener("click", async () => {
+    const tsv = faltan.map(f => [f[0], f[1], f[2], "", ""].join("\t")).join("\n");
+    const fila = datos.filasResultados + 2;
+    try {
+      await navigator.clipboard.writeText(tsv);
+      msg.textContent = `Copiado. En la hoja, pestaña Resultados, pega en la celda A${fila}.`;
+    } catch (e) {
+      msg.textContent = "No se pudo copiar automáticamente.";
+    }
+  });
+  caja.append(btn, msg);
+  cont.append(caja);
+}
+
 /* Nombre corto para pantallas estrechas: el nombre de pila (+ inicial del apellido si se repite) */
 function nombreCorto(cat, nombre) {
   const pila = nombre.trim().split(/\s+/)[0];
@@ -296,6 +319,9 @@ function pintarOrden(datos) {
   if (!total) { cont.append(el("p", { class: "vacio", text: "Aún no hay suficientes jugadores." })); return; }
   const hechosN = cats.reduce((s, [ck, c]) => s + c.partidos.filter(([a, b]) => resultadoDe(datos, ck, a, b)).length, 0);
   $("#orden-resumen").textContent = `${hechosN} de ${total} partidos jugados`;
+
+  botonCopiar(cont, datos, intercalar(cats.map(([ck, c]) => ({ cat: ck, partidos: c.partidos })))
+    .map(m => [m.cat.toUpperCase(), m.a, m.b]));
 
   const cols = el("div", { class: "cols" });
   const hechos = [];
@@ -384,6 +410,7 @@ function pintarElim(datos) {
     tarjetas.forEach(t => g.append(t));
     cont.append(g);
   };
+  botonCopiar(cont, datos, [...qf, ...sf, fin].filter(m => m.a && m.b).map(m => [CONFIG.CAT_ELIM, m.a, m.b]));
   bloque("Cuartos de final", qf.map((p, i) => tarjeta("C" + (i + 1), p, ck_elim)));
   bloque("Semifinales", sf.map((p, i) => tarjeta("S" + (i + 1), p, ck_elim)));
   bloque("Final", [tarjeta("Final", fin, ck_elim)]);

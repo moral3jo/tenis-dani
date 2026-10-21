@@ -157,3 +157,14 @@ No hay que volver a tocar GitHub ni Cloudflare salvo que cambies el diseño o el
 En Cloudflare: tu proyecto → **Custom domains → Set up a custom domain** y sigue los pasos.
 
 ¡A disfrutar del campeonato! 🎾
+
+---
+
+## Meter resultados sin escribir nombres
+
+Cuando los niños estén fijos, en la web (pestaña **Partidos**) pulsa **«Copiar N partidos para la hoja»**
+y pégalos en la pestaña `Resultados` en la celda que indica (la primera vacía de la columna A).
+Así los nombres ya están escritos y en cada partido solo hay que teclear **los dos marcadores**
+(columnas `Juegos1` y `Juegos2`; `NP` si alguien no se presenta).
+El botón solo copia los partidos que aún no están en la hoja, así que se puede volver a pulsar sin duplicar.
+En la pestaña **Final**, el mismo botón añade los cruces de eliminatorias según se vayan conociendo.
