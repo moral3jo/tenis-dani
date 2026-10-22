@@ -372,7 +372,8 @@ function pintarElim(datos) {
   const A = estadoGrupo(datos, ckA, cA), B = estadoGrupo(datos, ckB, cB);
   const prov = !(A.terminado && B.terminado);
   const N = CONFIG.CLASIFICAN;
-  const a = i => A.lista[i], b = i => B.lista[i];
+  const hayJugados = [[ckA, cA], [ckB, cB]].some(([ck, c]) => c.partidos.some(([x, y]) => resultadoDe(datos, ck, x, y)));
+  const a = i => hayJugados ? A.lista[i] : undefined, b = i => hayJugados ? B.lista[i] : undefined;
 
   $("#elim-resumen").textContent = (prov ? "Cruces provisionales: cambian según la clasificación de los grupos. " : "Cruces definitivos. ")
     + `Primeros ${N} de cada grupo.`;
