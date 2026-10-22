@@ -352,8 +352,7 @@ function pintarOrden(datos) {
     cont.append(d);
   }
 
-  botonCopiar(cont, datos, intercalar(cats.map(([ck, c]) => ({ cat: ck, partidos: c.partidos })))
-    .map(m => [m.cat.toUpperCase(), m.a, m.b]));
+  botonCopiar(cont, datos, cats.flatMap(([ck, c]) => c.partidos.map(([a, b]) => [ck.toUpperCase(), a, b])));
 }
 
 /* Clasificación de un grupo (nombres ordenados) y si ya ha terminado */
