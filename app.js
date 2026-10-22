@@ -31,7 +31,7 @@ function urlHoja(pestana) {
 }
 
 async function leerPestana(pestana) {
-  const res = await fetch(urlHoja(pestana));
+  const res = await fetch(urlHoja(pestana), { cache: "no-store" });
   if (!res.ok) throw new Error(`No se pudo leer la pestaña "${pestana}" (${res.status})`);
   const texto = await res.text();
   return aObjetos(parseCSV(texto));
